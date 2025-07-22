@@ -14,7 +14,17 @@ $TableList = Get-DdbTableList | Sort-Object
 $TableArray = @()
 
 foreach($TableName in $TableList){
-    $Table = Get-DdbTable -TableName $TableName | Select-Object *
+    try {
+        $Table = Get-DdbTable -TableName $TableName | Select-Object *
+    } catch {
+        # Permissions errors are terminating
+        Write-Warning $Error[0]
+        # Try/catch captures the TableName for inventory
+        #   and still raises the error to the caller
+        $Table = [PSCustomObject]@{
+            TableName = $TableName
+        }
+    }
 
     $TableArray += $Table | Select-Object @(
         'TableName'
